@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <!-- 开启对dao和service的注解扫描 -->
+    <context:component-scan base-package="com.moonhu.ssm.dao"/>
+    <context:component-scan base-package="com.moonhu.ssm.service"/>
+
+    <!-- 配置mybatis开始 -->
+
+    <!-- 获取SqlSession工厂 -->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="plugins">
+            <array>
+                <!-- 分页插件 -->
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <props>
+                            <prop key="helperDialect">oracle</prop>
+                            <prop key="reasonable">true</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+        <!-- 别名 -->
+        <property name="typeAliasesPackage" value="com.moonhu.ssm.dao"/>
+    </bean>
+
+    <!-- dataSource连接信息 -->
+    <context:property-placeholder location="classpath:dataSource.properties"/>
+
+    <!-- dateSource -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!-- dao接口扫描 -->
+    <bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.moonhu.ssm.dao"/>
+    </bean>
+
+    <!-- 配置mybatis结束 -->
+
+
+    <!-- 配置spring开始 -->
+
+    <!-- 事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 事务管理器属性 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--
+       支持AOP的注解支持，AOP底层使用代理技术
+       JDK动态代理，要求必须有接口
+       cglib代理，生成子类对象，proxy-target-class="true" 默认使用cglib的方式
+   -->
+
+    <!-- aop事务配置 -->
+    <aop:config proxy-target-class="true">
+        <aop:pointcut id="pointCut" expression="execution(* com.moonhu.ssm.service.impl.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointCut"/>
+    </aop:config>
+
+
+    <!--&lt;!&ndash; 日志通知类 &ndash;&gt;-->
+    <!--<bean id="logHelper" class="com.moonhu.ssm.Controller.LogAop"/>-->
+    <!---->
+    <!--&lt;!&ndash; 日志通知 &ndash;&gt;-->
+    <!--<aop:config>-->
+        <!--&lt;!&ndash; 切点表达式 &ndash;&gt;-->
+        <!--<aop:pointcut id="controllerPointCut" expression="execution(* com.moonhu.ssm.Controller*.*(..))"/>-->
+        <!--&lt;!&ndash; 切面 &ndash;&gt;-->
+        <!--<aop:aspect ref="logHelper">-->
+            <!--&lt;!&ndash; 前置通知 &ndash;&gt;-->
+            <!--<aop:before method="doBefore" pointcut-ref="controllerPointCut"/>-->
+            <!--&lt;!&ndash; 最终通知 &ndash;&gt;-->
+            <!--<aop:after method="doAfter" pointcut-ref="controllerPointCut"/>-->
+        <!--</aop:aspect>-->
+
+    <!--</aop:config>-->
+
+    <!-- 配置spring结束 -->
+
+
+</beans>

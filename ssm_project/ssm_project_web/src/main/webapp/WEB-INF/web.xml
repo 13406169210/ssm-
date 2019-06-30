@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <display-name>Archetype Created Web Application</display-name>
+
+    <!-- spring监听器配置开始 -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <!-- request对象 -->
+    <listener>
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+    </listener>
+    
+    <!-- 指定资源位置 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml,classpath*:spring-security.xml</param-value>
+    </context-param>
+
+    <!-- spring mvc配置开始 -->
+
+
+    <!-- 配置核心控制容器 -->
+    <servlet>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- 指定资源位置 -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring-mvc.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <!-- 指定拦截 *.do 地址 -->
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+
+    <!-- 字符过滤器 只对post请求有效-->
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <!-- 设置字符集 -->
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <!-- 强制开启 -->
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- spring mvc配置结束 -->
+
+
+    <!-- spring-security框架配置开始 -->
+
+        <!-- 配置spring-security框架的filter -->
+        <filter>
+            <filter-name>springSecurityFilterChain</filter-name>
+            <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        </filter>
+        <filter-mapping>
+            <filter-name>springSecurityFilterChain</filter-name>
+            <url-pattern>/*</url-pattern>
+        </filter-mapping>
+
+
+        <!-- spring-security框架配置结束 -->
+</web-app>

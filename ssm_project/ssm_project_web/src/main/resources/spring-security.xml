@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!-- 配置不过滤的资源（静态资源及登录相关） -->
+    <security:http security="none" pattern="/login.jsp"/>
+    <security:http security="none" pattern="/login.html"/>
+    <security:http security="none" pattern="/failer.jsp"/>
+    <security:http security="none" pattern="/img/**"/>
+    <security:http security="none" pattern="/css/**"/>
+    <security:http security="none" pattern="/plugins/**"/>
+
+    <!-- 开启注解权限控制的支持 -->
+    <security:global-method-security jsr250-annotations="enabled" pre-post-annotations="enabled"
+                                     secured-annotations="enabled"/>
+    <!--
+    	配置具体的规则
+    	auto-config="true"	不用自己编写登录的页面，框架提供默认登录页面
+    	use-expressions="false"	是否使用SPEL表达式（没学习过）
+    -->
+    <security:http auto-config="true" use-expressions="false">
+        <!-- 配置具体的拦截的规则 pattern="请求路径的规则" access="访问系统的人，必须有ROLE_USER的角色" -->
+        <security:intercept-url pattern="/product/**" access="ROLE_USER,ROLE_ADMIN,ROLE_product"/>
+        <!--<security:intercept-url pattern="/**" access="IS_AUTHENTICATED_REMEMBERED"/>-->
+        <security:intercept-url pattern="/**" access="IS_AUTHENTICATED_FULLY"/>
+
+        <!-- 定义跳转的具体的页面
+          login-page ; 指定登陆的页面
+          login-processing-url : 表单提交的位置
+          default-target-url : 默认认证成功跳转的页面
+          authentication-failure-url : 指定认证失败跳转的页面
+          authentication-success-forward-url : 认证成功转发的页面
+         -->
+        <security:form-login login-page="/login.jsp"
+                             login-processing-url="/login"
+                             default-target-url="/pages/main.jsp"
+                             authentication-failure-url="/failer.jsp"
+        />
+
+        <!-- 关闭跨域请求 -->
+        <security:csrf disabled="true"/>
+
+        <!-- 配置退出 -->
+        <security:logout invalidate-session="true" logout-url="/logout.do" logout-success-url="/login.jsp"/>
+
+        <!-- 记住我功能 -->
+        <security:remember-me remember-me-parameter="remember-me" user-service-ref="userService"/>
+
+    </security:http>
+
+    <!-- 切换成数据库中的用户名和密码 -->
+    <security:authentication-manager>
+        <!-- 指定service -->
+        <security:authentication-provider user-service-ref="userService">
+            <!-- 配置加密的方式 -->
+            <security:password-encoder ref="passwordEncoder"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+
+    <!-- 配置加密类 -->
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+
+    <!-- 提供了入门的方式，指定用户名和密码
+        {noop}: 手动添加的密码,在高版本中需要添加前缀,低版本的则不需要
+
+    <security:authentication-manager>
+    	<security:authentication-provider>
+    		<security:user-service>
+    			<security:user name="admin" password="{noop}admin" authorities="ROLE_USER"/>
+    		</security:user-service>
+    	</security:authentication-provider>
+    </security:authentication-manager>
+    -->
+
+
+</beans>
